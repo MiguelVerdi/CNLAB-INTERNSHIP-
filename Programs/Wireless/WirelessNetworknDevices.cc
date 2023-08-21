@@ -76,19 +76,19 @@ main()
 	double simTime = 20.0; //sec
 	std::string phyMode("DsssRate1Mbps");
 	
-    Config::SetDefault("ns3::WifiRemoteStationManager::NonUnicastMode", StringValue(phyMode));
+    	Config::SetDefault("ns3::WifiRemoteStationManager::NonUnicastMode", StringValue(phyMode));
 
 	/*
 	 * Node configuration.
 	 */
-    NodeContainer nodes; 
+   	NodeContainer nodes; 
 	NodeContainer c[CONECTIONS]; //Holds nodes in pairs.
-    nodes.Create(nNodes); //Holds all the nodes in the simulation
+  	nodes.Create(nNodes); //Holds all the nodes in the simulation
 
 	/*
 	 * Comunication wireless protocol configuration.
 	 */
-    NetDeviceContainer devices[CONECTIONS];  
+   	NetDeviceContainer devices[CONECTIONS];  
 	YansWifiPhyHelper wifiPhy[CONECTIONS];
 	WifiHelper wifi[CONECTIONS];
 	YansWifiChannelHelper wifiChannel[CONECTIONS];
@@ -102,7 +102,7 @@ main()
 	for (int link = 0; link < CONECTIONS; link++) {
 
 		c[link].Add(nodes.Get(TOPOLOGY[link][0])); //Adds each node based in the topology with some link
-        c[link].Add(nodes.Get(TOPOLOGY[link][1]));
+        	c[link].Add(nodes.Get(TOPOLOGY[link][1]));
 
 		wifiChannel[link].SetPropagationDelay("ns3::ConstantSpeedPropagationDelayModel"); //Channel configuration
 		wifiChannel[link].AddPropagationLoss("ns3::LogDistancePropagationLossModel",
@@ -119,18 +119,18 @@ main()
    		wifiPhy[link].Set("TxPowerEnd", DoubleValue(txPowerDbm));
 
 		devices[link] = wifi[link].Install(wifiPhy[link], wifiMac, c[link]); //Creating each conection
-    }
+    	}
 
 	/*
 	 * Rouiting protocols (can change olsr,aodv,dsdv)
 	 */
 	OlsrHelper olsr;
 	AodvHelper aodv;
-    DsdvHelper dsdv;
+        DsdvHelper dsdv;
 
 	Ipv4StaticRoutingHelper staticRouting;
 	Ipv4ListRoutingHelper list;
-    InternetStackHelper stack;
+        InternetStackHelper stack;
 	
 	
 	list.Add(aodv, 100);
@@ -139,7 +139,7 @@ main()
 	stack.InstallAll();
 
 
-    /*
+        /*
 	 * IP addressing. 
 	 */
 	Ipv4AddressHelper address[CONECTIONS];
@@ -148,7 +148,7 @@ main()
 	for (int link = 0; link < CONECTIONS; link++) {
         address[link].SetBase(IP[link], MASK); //Adressing two nodes to the same network.
 		interface[link] = address[link].Assign(devices[link]); 
-    }
+  	  }
 	
  	/*
 	 * Node mobility. 
@@ -162,7 +162,7 @@ main()
                                   "GridWidth",UintegerValue(5),
                                   "LayoutType",StringValue("RowFirst"));
 	
-    mobility.SetMobilityModel("ns3::RandomWalk2dMobilityModel",
+   	mobility.SetMobilityModel("ns3::RandomWalk2dMobilityModel",
                               "Bounds", RectangleValue(Rectangle(-100, 100, -100, 100)),
                               "Speed", StringValue("ns3::ConstantRandomVariable[Constant=5.0]"));
 	mobility.InstallAll();
@@ -172,15 +172,15 @@ main()
 	 * Tracing simulation. 
 	 */
 	V4TraceRouteHelper traceroute("10.1.9.2"); // Objetive of the trace 
-    traceroute.SetAttribute("Verbose", BooleanValue(true));
-    ApplicationContainer tracing = traceroute.Install(nodes.Get(0)); //Node sending the packages
-    tracing.Start(Seconds(0));
-    tracing.Stop(Seconds(simTime));
+   	traceroute.SetAttribute("Verbose", BooleanValue(true));
+    	ApplicationContainer tracing = traceroute.Install(nodes.Get(0)); //Node sending the packages
+   	tracing.Start(Seconds(0));
+   	tracing.Stop(Seconds(simTime));
   
 
 	/*
 	 * App protocol. 
-    */
+  	 */
 	OnOffHelper onOffHelper ("ns3::TcpSocketFactory", Address(InetSocketAddress("10.1.1.1",SERVER))); //Address of the node and por of node generating trafic.
 
 	onOffHelper.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1]")); //Time the app is on. 
@@ -199,11 +199,11 @@ main()
 	PacketSinkHelper sink ("ns3::TcpSocketFactory",Address(InetSocketAddress("10.1.1.1",SERVER))); //Addrress of the node you are reciving from
 	ApplicationContainer sinkContainer = sink.Install(nodes.Get(7)); //Node that is reciving
 	sinkContainer.Start(Seconds(1.0));
-    sinkContainer.Stop(Seconds(simTime));
+        sinkContainer.Stop(Seconds(simTime));
 
 
 	/*
-	 *Flow Monitor initialization
+	 * Flow Monitor initialization
 	 */
 	Ptr<FlowMonitor> monitor;
 	FlowMonitorHelper flowMonitor;
@@ -219,19 +219,13 @@ main()
 	 *Flow Monitor measurments
 	 */
 	monitor->SerializeToXmlFile("Wireless2DevicesMEASURMENTS.xml", true, true);  //File for netanim use
-
-
 	Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowMonitor.GetClassifier()); //Gets a pointer to the Ipv4 flow information.
-	
 	std::map<FlowId, FlowMonitor::FlowStats> stats = monitor->GetFlowStats(); //Gets a pointer to the statistics of the Flow monitor.
 	std::map<FlowId, FlowMonitor::FlowStats>::const_iterator statsPointer ;
 
 
 	for (statsPointer  = stats.begin(); statsPointer  != stats.end(); ++statsPointer ){
-
 		Ipv4FlowClassifier::FiveTuple monitor = classifier->FindFlow(statsPointer ->first);
-
-
 		//Getting stats from the flow monitor
 		float PDR = 100*(statsPointer->second.rxPackets)/(statsPointer->second.txPackets); //Defined as 100*(Received packages/ transmitted packages).
 		float transmitionTime = statsPointer->second.timeLastRxPacket.GetSeconds() - statsPointer ->second.timeFirstTxPacket.GetSeconds(); //Difference between first an last package.
@@ -246,12 +240,8 @@ main()
 		std::cout << "Rx Packages:   " << statsPointer ->second.rxPackets<< "\n";
 		std::cout << "Lost packages:   " << statsPointer ->second.lostPackets << "\n";
 		}
+	
 	Simulator::Destroy();
-
-
-
-
-
 	return(0);
 }
 

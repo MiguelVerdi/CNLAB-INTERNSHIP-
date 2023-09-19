@@ -1,15 +1,13 @@
-# CNLAB-INTERNSHIP
+# CNLAB-INTERNSHIP Simulation Readme
 
-
-# Simulation Readme
 ## Simulation Time
 Simulation time = 1s.
 
 ## Communication Specifications
-**Application Protocol:** onoff  
-**Sending Rate:** 80Mbps  
-**Max Packages:** 10,000 packages  
-**Packet Size:** 200 bytes
+- **Application Protocol:** onoff
+- **Sending Rate:** 80Mbps
+- **Max Packages:** 10,000 packages
+- **Packet Size:** 200 bytes
 
 ### Channel
 - **Tx Power:** 23 dBm
@@ -33,15 +31,12 @@ Simulation time = 1s.
 - Fourth position represents the sender or receiver (2 for receiver, 1 for sender)
 - Example: Car 3031 sending to car 2021
 
-Net (10.3.31.0)
+      Net (10.3.31.0)
 other car * * * * * # (3031)# * * * * * * * * # (2021)# * * * * * other car next IP (10.2.21.0)
-* *
-* *
-IP(10.3.31.1) IP(10.3.32.2)
 
+                         IP(10.3.31.1) IP(10.3.32.2)
 
-
-If the source vehicle is sending, IP(10.0.1.x)
+- If the source vehicle is sending, IP(10.0.1.x)
 
 ## Cars Simulation
 - **Start Position and Start Velocity:** As the routing eval files.

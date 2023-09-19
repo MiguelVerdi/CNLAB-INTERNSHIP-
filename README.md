@@ -1,0 +1,113 @@
+# CNLAB-INTERNSHIP-
+
+# Simulation Readme
+
+## Simulation Time
+Simulation time = 1s.
+
+## Communication Specifications
+**Application Protocol:** onoff  
+**Sending Rate:** 80Mbps  
+**Max Packages:** 10,000 packages  
+**Packet Size:** 200 bytes
+
+### Channel
+- **Tx Power:** 23 dBm
+- **Frequency:** 5.9GHz
+- **Bandwidth:** 20MHz
+
+## Vehicle Classification
+- **ID Format:** 4-numbers (type XXX)
+- **Types:** 
+  - 1 - Slow Vehicle
+  - 2 - Normal Vehicle
+  - 3 - Fast Vehicle
+- Example: ID = 2012 represents vehicle 12 of normal velocity vehicles
+- Special Vehicle with ID = 1 is the source vehicle
+
+## IP Classification
+- **Mask:** 255.255.255.0
+- Networks between hops should be in the form 10.x.x.x
+- Second position represents the sender's type (1,2,3)
+- Third position represents the ID of the car without the class
+- Fourth position represents the sender or receiver (2 for receiver, 1 for sender)
+- Example: Car 3031 sending to car 2021
+
+Net (10.3.31.0)
+other car * * * * * # (3031)# * * * * * * * * # (2021)# * * * * * other car next IP (10.2.21.0)
+* *
+* *
+IP(10.3.31.1) IP(10.3.32.2)
+
+
+
+If the source vehicle is sending, IP(10.0.1.x)
+
+## Cars Simulation
+- **Start Position and Start Velocity:** As the routing eval files.
+- **Highway Specification:** 5Km.
+- **Track of Highway:** 3.5mts
+
+## Files highway*_PQGR.mat Unpack
+- **Filename Format:** highway*_PQGR.mat
+  - * = Dense, Sparse, Usparse, Vsparse
+
+**Variables:**
+1. **Cluster_time:** Entire cluster information
+   - First column: Timestamp
+   - Second column: Cluster information of each time slot (ID, x location, y location, speed)
+   - First row: Complete cluster information
+   - Second row: Cluster head information
+
+2. **Routing_eval:** Entire routing information
+   - First column: Timestamp
+   - Second column: Cluster information of each time slot (ID, x location, y location, speed)
+   - First row: Routing path of each cluster
+   - Second row: Measured per-hop delay
+   - Third column: Measured per-hop reliability
+   - Fourth column: Measured per-hop channel capacity
+   - Fifth column: Measured per-hop cost
+
+3. **T_pred_con:** Prediction time interval
+   - Each value corresponds to the number of seconds for mobility prediction
+
+4. **T_update_con:** Time period to spot connection loss
+   - Each value corresponds to the number of seconds to update the global topology
+
+## Data Stacking
+- highway*_PQGR.mat -> var3 T_pred_con
+- Column 1 is the time slot, the second column has cluster information (GPCA and LPCA)
+- * = Dense, Sparse, Usparse, Vsparse
+
+**GPCA:** Presented every T_update_con time slots iterations.
+- 1. The column relays 'Relays' contains the number of clusters in the simulation (Iterate over the three clusters)
+- 2. Inside each cluster, the first row is the Forward path, and the second one is the backward pack (Iterate over these two)
+- 3. Each row represents the (cluster ID, x position (m), y position (m), velocity (m/s))
+
+**LPCA:** Presented every time iteration except when GPCA is presented.
+- 1. Inside it, It has the information in 'Relays' of GPCA (first row) and LPCA (second row), get the second row.
+- 2. Inside the second row, there is information for each cluster (Iterate over each of these two clusters)
+- 3. Inside each cluster, the first row is the Forward path, and the second one is the backward pack (Iterate over these two).
+- 4. Each row represents the (cluster ID, x position (m), y position (m), velocity (m/s))
+
+## Data Formatting for Simulation
+- highway*_PQGR.mat -> ExperimentData.m -> highway*_PQGR.csv
+- * = Dense, Sparse, Usparse, Vsparse
+
+| Iteration (I) | Time (Seconds) | GPCA | Cluster (C) | Node Position | Direction (D) | ID  | X    | Y    | V     |
+| --------------| --------------- | ---- | ----------- | ------------- | ------------- | --- | ---- | ---- | ----- |
+| 5             | 303             | False| 1           | 1             | 0             | 3020| 384  | -4.8 | 39.35 |
+| 19            | 401             | True | 2           | 3             | 1             | 2033| 666.74 | -8  | 34.25 |
+
+- In direction, 0 means forward, 1 means backward.
+
+## Data Writing
+When running the simulation, the program generates a file `highway*_PQGR_simResults.csv` with the following headers:
+
+- Time,TotalClusters,GPCA,MaxTh,AvgTh,MinTh,MaxLat,AvgLat,MinLat,MaxPDR,AvgPDR,MinPDR,MaxDist,AvgDist,MinDist,MaxHop,AvgHop,MinHop.
+
+
+
+
+
+

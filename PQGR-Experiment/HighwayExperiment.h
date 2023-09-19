@@ -743,10 +743,10 @@ HighwayExperiment::runExperiment (const std::vector<std::vector<double>>& arrayV
 		time = row[1]; //This has to go after the print,  because is the time update
 		}
 	
-	totalHops = nNodes;
+	
 	//Skips when there is just one node.
 	if (nNodes > 1){  
-
+		totalHops = nNodes;
 
 		//Uncoment this to se the parameters of each experiments
 		/*

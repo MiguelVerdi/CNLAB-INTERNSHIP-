@@ -5,14 +5,15 @@ Simulation time = 1s.
 
 ## Communication Specifications
 - **Application Protocol:** onoff
-- **Sending Rate:** 80Mbps
-- **Max Packages:** 10,000 packages
-- **Packet Size:** 200 bytes
+- **Sending Rate:** 90Mbps
+- **Max Packages:** 20,000 packages
+- **Packet Size:** 500 bytes
 
 ### Channel
-- **Tx Power:** 23 dBm
+- **Tx Power:** 35 dBm
 - **Frequency:** 5.9GHz
-- **Bandwidth:** 20MHz
+- **Bandwidth:** 40MHz
+- **Phy mode:** VhtMcs6
 
 ## Vehicle Classification
 - **ID Format:** 4-numbers (type XXX)

@@ -157,15 +157,11 @@ In direction 0 means forward, 1 meand backward.
 
 Data writing 
 ------------------------------------------------------------------
+When running the simulation the program generates a file highway*_PQGR_simResults.csv with the next headers
 highway*_PQGR.mat -> ExperimentData.m -> highway*_PQGR.csv -> highway*_PQGR_simResults.csv
 
--minTh means to run all the clusters and both directions of a sime time slot and get the min Throughput
--minTh means to run all the clusters and both directions of a sime time slot and get the max Throughput
--meanTh means to run all the clusters and both directions of a sime time slot and get the sum Throughput(i)/Nclusters
-- latency is the max latency of all the clusters and directions in each time slot. 
-- PDR mieans the min pdr of all the clusters and directions in each time slot. 
-
- Time (Seconds) | GPCA | N of Clustes  | Th_statistics (minTh,maxTh,avgTh)| latency (ms) | PDR
+Headers:
+ Time,TotalClusters,GPCA,MaxTh,AvgTh,MinTh,MaxLat,AvgLat,MinLat,MaxPDR,AvgPDR,MinPDR,MaxDist,AvgDist,MinDist,MaxHop,AvgHop,MinHop. 
 -----------------------------------------------------------------
 */
 

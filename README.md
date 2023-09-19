@@ -29,7 +29,7 @@ This generates the `ExperimentResultPlots/*/highway*_PQGR_Result_**_plot.png` fi
 
 - In addition a final plot is generated with all these graphs together `ExperimentResultPlots/**/highway*_PQGR_Result_AllFigures.png`.
 
-#General specifications of the simulation
+# General specifications of the simulation
 
 ## Simulation Time
 Simulation time = 1s.

@@ -2,7 +2,6 @@
 
 
 # Simulation Readme
-
 ## Simulation Time
 Simulation time = 1s.
 
@@ -105,7 +104,11 @@ If the source vehicle is sending, IP(10.0.1.x)
 ## Data Writing
 When running the simulation, the program generates a file `highway*_PQGR_simResults.csv` with the following headers:
 
-- Time,TotalClusters,GPCA,MaxTh,AvgTh,MinTh,MaxLat,AvgLat,MinLat,MaxPDR,AvgPDR,MinPDR,MaxDist,AvgDist,MinDist,MaxHop,AvgHop,MinHop.
+| Time | Total Clusters | GPCA | Max Th | Avg Th | Min Th | Max Lat | Avg Lat | Min Lat | Max PDR | Avg PDR | Min PDR | Max Dist | Avg Dist | Min Dist | Max Hop | Avg Hop | Min Hop |
+|------|----------------|------|--------|--------|--------|---------|---------|---------|---------|---------|---------|----------|----------|----------|---------|---------|---------|
+| 271  | 3              | 1    | 89.0279| 88.941 | 88.809 | 0.0097876| 0.0078271| 0.0033623| 0.9879  | 0.9817  | 0.9771  | 95.5058  | 77.051   | 61.9015  | 4       | 3.4     | 2       |
+| 279  | 3              | 0    | 89.3051| 89.0168| 88.9182| 0.0227674| 0.0130128| 0.0065037| 0.9881  | 0.9780  | 0.9549  | 60.8249  | 46.8088  | 39.3827  | 8       | 5       | 3       |
+
 
 
 

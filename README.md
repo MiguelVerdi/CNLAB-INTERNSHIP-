@@ -24,8 +24,10 @@ These are located in the `InputFiles` file and are described as `highway*_PQGR.m
 
 - Finally this file is run in the python3 program `PlotFileExperiment.py` where you must specify in the file_path variable the file you want to display.
 This generates the `ExperimentResultPlots/*/highway*_PQGR_Result_**_plot.png` files.
-where ** = DataRate, Distance, Hops,Latency,PDR 
-In addition a final plot is generated with all these graphs together `ExperimentResultPlots/**/highway*_PQGR_Result_AllFigures.png`.
+
+- Where ** = DataRate, Distance, Hops,Latency,PDR 
+
+- In addition a final plot is generated with all these graphs together `ExperimentResultPlots/**/highway*_PQGR_Result_AllFigures.png`.
 
 #General specifications of the simulation
 

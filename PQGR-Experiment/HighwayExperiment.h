@@ -35,15 +35,17 @@ Simulation time = 1s.
 
 Comunication specifications: 
 ------------------------------------------------------------------
-Application protocol: onoff
-Sending rate: 80Mbps
-Max packages: 10,000 packages
-packet size= 200bytes
+Application Protocol: onoff
+Sending Rate: 90Mbps
+Max Packages: 20,000 packages
+Packet Size: 500 bytes
 
 Channel
-Txpower 23 dBm
-Frequency 5.9GHz
-Bandwidth: 20MHz
+
+Tx Power: 35 dBm
+Frequency: 5.9GHz
+Bandwidth: 40MHz
+Phy mode: VhtMcs6
 
 
 

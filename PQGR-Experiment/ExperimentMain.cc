@@ -1,6 +1,6 @@
 #include "HighwayExperiment.h"
 /*
-    File: WirelessTopology.cpp
+    File: ExperimentMain.cpp
     Author: Miguel Verdi
 	Mail: verdi.resendiz.miguel@gmail.com
 	Brief: This program takes a database in csv format that represents a series of vehicle-to-vehicle communication simulations. These simulations occur at a certain time T, where there are different clusters, different directions. 

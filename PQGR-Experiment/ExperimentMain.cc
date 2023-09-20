@@ -154,22 +154,31 @@ int
 main(int argc, char **argv)
 {
     
-	HighwayExperiment highwayExperiment;
+	HighwayExperiment highwayExperiment1;
+	HighwayExperiment highwayExperiment2;
+	HighwayExperiment highwayExperiment3;
+	HighwayExperiment highwayExperiment4;
 
-	//std::string fileName = "highwayDense_PQGR.csv";
-	//std::string fileName = "highwaySparse_PQGR.csv";
-	//std::string fileName = "highwayUsparse_PQGR.csv";
-	std::string fileName = "highwayVsparse_PQGR.csv";
+	std::string fileName1 = "highwayDense_PQGR.csv";
+	std::string fileName2 = "highwaySparse_PQGR.csv";
+	std::string fileName3 = "highwayUsparse_PQGR.csv";
+	std::string fileName4 = "highwayVsparse_PQGR.csv";
 
-	if (!highwayExperiment.Configure (argc, argv,fileName)){
-    	NS_FATAL_ERROR ("Configuration failed. Aborted.");
-	}
-	
+	highwayExperiment1.Configure (argc, argv, fileName1);
+	highwayExperiment1.openFile();
+	highwayExperiment1.runAll();
 
-	highwayExperiment.Configure (argc, argv, fileName);
-	highwayExperiment.openFile();
-	highwayExperiment.runAll();
-	
+	highwayExperiment2.Configure (argc, argv, fileName2);
+	highwayExperiment2.openFile();
+	highwayExperiment2.runAll();
+
+	highwayExperiment3.Configure (argc, argv, fileName3);
+	highwayExperiment3.openFile();
+	highwayExperiment3.runAll();
+
+	highwayExperiment4.Configure (argc, argv, fileName4);
+	highwayExperiment4.openFile();
+	highwayExperiment4.runAll();
 
 	return(0);
 }

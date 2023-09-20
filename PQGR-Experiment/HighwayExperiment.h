@@ -453,8 +453,12 @@ HighwayExperiment::runAll(){
 		for (const auto& row:iterationI) { totalClusters = row[3]; } //Gets the number of clusters in this time  
 		
 		float simProgress = std::round(100*I/totalI); //For printing how many simulations have been ran. 
-		//std::cout<< "\n=============================== Simulation progress: " << simProgress << "% =============================== " << std::endl; 
-		std::cout<< "\n - Simulation progress: " << simProgress << "% " << std::endl; 
+		if(simProgress < 100){ 
+				std::cout<< "\n - Simulation progress: " << simProgress << "% " << std::endl; 
+		}
+		else{
+			std::cout<< "\n - End of the simulation" << std::endl; 
+		}
 		
 		iterateClusters(iterationI);	
 	}

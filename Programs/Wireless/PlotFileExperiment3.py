@@ -18,27 +18,27 @@ with open(file_path, 'r') as file:
 
 # Print the data (list of lists)
 
-
 x = [row[0] for row in data]
 y1 = [row[1] for row in data]
 y2 = [row[2] for row in data]
-y3 = [row[3] for row in data]
 
-fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(15, 10))
 
 # Plot data on the first subplot
-ax1.plot(x, y1, label='Throughput')
-ax1.scatter(x, y1, label='Throughput')
-ax1.set_ylabel('Throughput')
+ax1.plot(x, y1, label='Throughput', color = 'black')
+ax1.scatter(x, y1)
+ax1.set_ylabel('Throughput  (Mbps)')
 ax1.legend()
+ax1.grid(True)
 
 # Plot data on the second subplot
-ax2.plot(x, y2, label='PDR')
-ax2.scatter(x, y2, label='PDR')
-ax2.set_xlabel('hOPS')
+ax2.plot(x, y2, label='PDR', color = "black")
+ax2.scatter(x, y2)
+ax2.set_xlabel('Number of hops')
 ax2.set_ylabel('PDR')
 ax2.legend()
+ax2.grid(True)
+
 
 # Show the plot
-plt.tight_layout()  # Optional: Improve subplot spacing
-plt.show()
+plt.savefig("Experiment3.png")

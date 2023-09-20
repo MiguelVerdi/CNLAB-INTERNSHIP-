@@ -33,7 +33,7 @@ ax1.legend()
 ax1.grid(True)
 
 # Plot data on the second subplot
-ax2.plot(x, y2, label='PDR', color = "black")
+ax2.plot(x, y2, label='PDR (%)', color = "black")
 ax2.scatter(x, y2)
 ax2.set_xlabel('Distance between vehicles (mts)')
 ax2.set_ylabel('PDR')

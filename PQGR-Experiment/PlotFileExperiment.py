@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import os
 
 # Specify the path to your text file
-file_path = 'ExperimentResultFiles\highwayUsparse_PQGR_Result_Incomplete.csv'
+file_path = 'ExperimentResultFiles\highwayVsparse_PQGR_Result_Incomplete.csv'
 # Extract the base name of the CSV file without the extension
 base_name = os.path.splitext(os.path.basename(file_path))[0]
 

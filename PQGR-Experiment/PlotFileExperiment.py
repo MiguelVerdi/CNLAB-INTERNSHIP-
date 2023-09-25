@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import os
 
 # Specify the path to your text file
-file_path = 'ExperimentResultFiles\highwayVsparse_PQGR_Result_Incomplete.csv'
+file_path = 'ExperimentResultFiles\highwaySparse_PQGR_Result.csv'
 # Extract the base name of the CSV file without the extension
 base_name = os.path.splitext(os.path.basename(file_path))[0]
 
@@ -96,7 +96,11 @@ for i, metric in enumerate([(maxHop, avgHop, minHop, 'Number of hops','Hops'),
     plt.ylabel(ylabel)
     plt.title(f'{title}')
     plt.grid()
-    plt.savefig(f"{base_name}_{title}_plot.png")  # Save each plot with a unique name
+    save_directory = "PQGR-Experiment\ExperimentResultPlots"
+
+# Create the full file path including the directory
+    file_path = os.path.join(save_directory, f"{base_name}_{title}_plot.png")
+    plt.savefig(file)  # Save each plot with a unique name
     plt.clf()  # Clear the current figure for the next iteration
 
 

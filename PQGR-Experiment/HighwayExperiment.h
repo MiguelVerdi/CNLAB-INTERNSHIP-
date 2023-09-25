@@ -205,7 +205,9 @@ public:
 
 private:
     // Attributes
-
+	bool printParametersTimeSlot;
+	bool printSingleExperimentParameters;
+	bool printConfigurationTimeSlot;
     // Count of received packets
     uint32_t g_packetCount = 0;
 
@@ -237,15 +239,15 @@ private:
     int channelWidth;
 
     // Experiment variables of each particular simulation updated each (time, direction and cluster)
-    float totalThroughput; //Computed as the smallest throughput of each two hops in the simulation
-    float totalLatency; //Computed as the sum of the latency beween hops
-    float totalPDR; // Packet Delivery Ratio (initially set to 1), calculated as the product of each two hops comunication 
-	float totalDist; //Computed as the distance between two nodes.  
-	float totalHops; //The number of nodes in the simulation. 
-
+    float SingleExpThroughput; //Computed as the smallest throughput of each two hops in the simulation
+    float SingleExpLatency; //Computed as the sum of the latency beween hops
+    float SingleExpPDR; // Packet Delivery Ratio (initially set to 1), calculated as the product of each two hops comunication 
+	float SingleExpDist; //Computed as the distance between two nodes.  
+	float SingleExpHops; //The number of nodes in the simulation. 
+	float timeValue,GPCAValue,clusterValue;
     // This times are for the data reading, are independent of the actual simulation time 
     float totalTime, firstTime;
-
+	
     // Time slot variables
     int totalClusters, cluster;
 
@@ -349,6 +351,9 @@ private:
 	 */
 	std::string addResultToFileName(const std::string& fileNameInput);
 
+	void writeResults();
+
+
 };
 
 
@@ -371,16 +376,30 @@ HighwayExperiment::Configure (int argc, char **argv, const std::string& fileName
 	packetSize = 500; // In bytes. The packet size to be sent.  (500)
 	txPowerDbm = 35.0; //In dBm. The power of transmition.
 	channelWidth = 40; //In MHz.
-	maxPackages = 20000; //The upper limit of packages the onoff aplication will send.  (20000)
+	maxPackages = 10000; //The upper limit of packages the onoff aplication will send.  (20000)
 	maxBytes = packetSize*maxPackages;
 
 	//Time settings
-	simTime = 1.0; //In sec. Time total of simulation
-	senderStart = 0.1;//In sec. Time of start sending, should be after the simulation starts.
-	receiverStart = 0.0;//In sec. Time of the receiver starts looking for packages.
-	senderStop = simTime;//In sec. Time th sender stops sending packages. 
-	receiverStop = simTime + 1.0 ;//In sec. Time the receiver stops receiving packages. Should be after the sender stops.  
+	// simTime = 40.0; //In sec. Time total of simulation
+	// senderStart = 30.1;//In sec. Time of start sending, should be after the simulation starts.
+	// receiverStart = 30.0;//In sec. Time of the receiver starts looking for packages.
+	// senderStop = simTime - 1.0;//In sec. Time th sender stops sending packages. 
+	// receiverStop = simTime + 1.0 ;//In sec. Time the receiver stops receiving packages. Should be after the sender stops.  
+	simTime = 1.0; //sec
+	
+	senderStart = 0.0;//sec
+	receiverStart = 0.0;//sec
 
+	senderStop = simTime;//sec
+	receiverStop = simTime;//sec
+
+
+	printParametersTimeSlot = false; 
+	printSingleExperimentParameters = false;
+	printConfigurationTimeSlot = false;
+
+
+	
  	return true;
 }
 
@@ -411,6 +430,7 @@ HighwayExperiment::openFile(){
 	
 }
 
+
 std::string HighwayExperiment::addResultToFileName(const std::string& fileNameInput) {
     // Find the position of the last dot (.) in the string
     size_t lastDotPosition = fileNameInput.rfind('.');
@@ -430,6 +450,7 @@ std::string HighwayExperiment::addResultToFileName(const std::string& fileNameIn
     }
 }
 
+
 void
 HighwayExperiment::runAll(){
 
@@ -447,14 +468,13 @@ HighwayExperiment::runAll(){
 
 	for (int I = 1; I <= totalI + 1; I++){	
 
-		
 		std::vector<std::vector<double>> iterationI;
 		for (const auto& row:dataMatrix) {if(row[0] == I){iterationI.push_back(row);}}  //Creates an array with all the clusters in a time. 
 		for (const auto& row:iterationI) { totalClusters = row[3]; } //Gets the number of clusters in this time  
 		
 		float simProgress = std::round(100*I/totalI); //For printing how many simulations have been ran. 
 		if(simProgress < 100){ 
-				std::cout<< "\n - Simulation progress: " << simProgress << "% " << std::endl; 
+			std::cout<< "\n - Simulation progress: " << simProgress << "% " << std::endl; 
 		}
 		else{
 			std::cout<< "\n - End of the simulation" << std::endl; 
@@ -476,122 +496,122 @@ HighwayExperiment::getParameters(){
 		// When ther first cluster, initialize the value with the first value.
 		
 		// Sum of throughput
-		sumTh = totalThroughput;
+		sumTh = SingleExpThroughput;
 
 		// Sum of latency
-		sumLat = totalLatency;
+		sumLat = SingleExpLatency;
 
 		// Sum of Packet Delivery Ratio (PDR)
-		sumPDR = totalPDR;
+		sumPDR = SingleExpPDR;
 
 		// Sum of distance
-		sumDist = totalDist;
+		sumDist = SingleExpDist;
 
 		// Sum of hops
-		sumHops = totalHops;
+		sumHops = SingleExpHops;
 
 		// Set initial values for max and min for each statistic within the time slot.
 		
 		// Maximum throughput
-		timeSlotMaxTh = totalThroughput;
+		timeSlotMaxTh = SingleExpThroughput;
 
 		// Minimum throughput
-		timeSlotMinTh = totalThroughput;
+		timeSlotMinTh = SingleExpThroughput;
 
 		// Maximum latency
-		timeSlotMaxLat = totalLatency;
+		timeSlotMaxLat = SingleExpLatency;
 
 		// Minimum latency
-		timeSlotMinLat = totalLatency;
+		timeSlotMinLat = SingleExpLatency;
 
 		// Maximum PDR
-		timeSlotMaxPDR = totalPDR;
+		timeSlotMaxPDR = SingleExpPDR;
 
 		// Minimum PDR
-		timeSlotMinPDR = totalPDR;
+		timeSlotMinPDR = SingleExpPDR;
 
 		// Maximum distance
-		timeSlotMaxDist = totalDist;
+		timeSlotMaxDist = SingleExpDist;
 
 		// Minimum distance
-		timeSlotMinDist = totalDist;
+		timeSlotMinDist = SingleExpDist;
 
 		// Maximum hops
-		timeSlotMaxHop = totalHops;
+		timeSlotMaxHop = SingleExpHops;
 
 		// Minimum hops
-		timeSlotMinHop = totalHops;
+		timeSlotMinHop = SingleExpHops;
 
 	} else {
 		// When the cluster is not the first one it computes the statistics.
 		
 		// Update the sum of throughput with the current value
-		sumTh += totalThroughput;
+		sumTh += SingleExpThroughput;
 
 		// Update the sum of latency with the current value
-		sumLat += totalLatency;
+		sumLat += SingleExpLatency;
 
 		// Update the sum of Packet Delivery Ratio (PDR) with the current value
-		sumPDR += totalPDR;
+		sumPDR += SingleExpPDR;
 
 		// Update the sum of distance with the current value
-		sumDist += totalDist;
+		sumDist += SingleExpDist;
 
 		// Update the sum of hops with the current value
-		sumHops += totalHops;
+		sumHops += SingleExpHops;
 
 		// Track the maximum values within the time slot for each statistic.
 		
 		// Update the maximum throughput if the current value is greater
-		if (timeSlotMaxTh < totalThroughput) {
-			timeSlotMaxTh = totalThroughput;
+		if (timeSlotMaxTh < SingleExpThroughput) {
+			timeSlotMaxTh = SingleExpThroughput;
 		}
 
 		// Update the maximum latency if the current value is greater
-		if (timeSlotMaxLat < totalLatency) {
-			timeSlotMaxLat = totalLatency;
+		if (timeSlotMaxLat < SingleExpLatency) {
+			timeSlotMaxLat = SingleExpLatency;
 		}
 
 		// Update the maximum PDR if the current value is greater
-		if (timeSlotMaxPDR < totalPDR) {
-			timeSlotMaxPDR = totalPDR;
+		if (timeSlotMaxPDR < SingleExpPDR) {
+			timeSlotMaxPDR = SingleExpPDR;
 		}
 
 		// Update the maximum distance if the current value is greater
-		if (timeSlotMaxDist < totalDist) {
-			timeSlotMaxDist = totalDist;
+		if (timeSlotMaxDist < SingleExpDist) {
+			timeSlotMaxDist = SingleExpDist;
 		}
 
 		// Update the maximum hops if the current value is greater
-		if (timeSlotMaxHop < totalHops) {
-			timeSlotMaxHop = totalHops;
+		if (timeSlotMaxHop < SingleExpHops) {
+			timeSlotMaxHop = SingleExpHops;
 		}
 
 		// Track the minimum values within the time slot for each statistic.
 		
 		// Update the minimum throughput if the current value is smaller
-		if (timeSlotMinTh > totalThroughput) {
-			timeSlotMinTh = totalThroughput;
+		if (timeSlotMinTh > SingleExpThroughput) {
+			timeSlotMinTh = SingleExpThroughput;
 		}
 
 		// Update the minimum latency if the current value is smaller
-		if (timeSlotMinLat > totalLatency) {
-			timeSlotMinLat = totalLatency;
+		if (timeSlotMinLat > SingleExpLatency) {
+			timeSlotMinLat = SingleExpLatency;
 		}
 
 		// Update the minimum PDR if the current value is smaller
-		if (timeSlotMinPDR > totalPDR) {
-			timeSlotMinPDR = totalPDR;
+		if (timeSlotMinPDR > SingleExpPDR) {
+			timeSlotMinPDR = SingleExpPDR;
 		}
 
 		// Update the minimum distance if the current value is smaller
-		if (timeSlotMinDist > totalDist) {
-			timeSlotMinDist = totalDist;
+		if (timeSlotMinDist > SingleExpDist) {
+			timeSlotMinDist = SingleExpDist;
 		}
 
 		// Update the minimum hops if the current value is smaller
-		if (timeSlotMinHop > totalHops) {
-			timeSlotMinHop = totalHops;
+		if (timeSlotMinHop > SingleExpHops) {
+			timeSlotMinHop = SingleExpHops;
 		}
 }
 
@@ -600,21 +620,69 @@ HighwayExperiment::getParameters(){
 void 
 HighwayExperiment::getAverages(){
 	// Calculate the average latency within the time .
-	timeSlotAvgLat = sumLat / (totalClusters * 2 - 1);
+	timeSlotAvgLat = sumLat / (clusterValue * 2 - 1);
 
 	// Calculate the average Packet Delivery Ratio (PDR) within the time .
-	timeSlotAvgPDR = sumPDR / (totalClusters * 2 - 1);
+	timeSlotAvgPDR = sumPDR / (clusterValue* 2 - 1);
 
 	// Calculate the average throughput within the time .
-	timeSlotAvgTh = sumTh / (totalClusters * 2 - 1);
+	timeSlotAvgTh = sumTh / (clusterValue* 2 - 1);
 
 	// Calculate the average distance within the time .
-	timeSlotAvgDist = sumDist / (totalClusters * 2 - 1);
+	timeSlotAvgDist = sumDist / (clusterValue * 2 - 1);
 
 	// Calculate the average number of hops within the time.
-	timeSlotAvgHop = sumHops / (totalClusters * 2 - 1);
+	timeSlotAvgHop = sumHops / (clusterValue * 2 - 1);
 
 }
+
+void 
+HighwayExperiment::writeResults(){
+
+	
+	if(printParametersTimeSlot){
+		std::cout<< "\n=========== result =========== "  << std::endl;
+		std::cout<< "Time: " << timeValue  << " s" << std::endl; 
+		std::cout<< "Total clusters: " << clusterValue << std::endl; 
+		std::cout<< "GPCA: " << GPCAValue << std::endl; 
+		
+		std::cout<< "Max throughput: " << timeSlotMaxTh << " Mbps" << std::endl;
+		std::cout<< "Avg throughput: " << timeSlotAvgTh << " Mbps" <<std::endl;
+		std::cout<< "Min throughput: " << timeSlotMinTh << " Mbps" << std::endl;
+
+		std::cout<< "Max latency: " << timeSlotMaxLat*1000 <<  " ms" << std::endl;
+		std::cout<< "Avg latency: " << timeSlotAvgLat*1000 << " ms" << std::endl;
+		std::cout<< "Min latency: " << timeSlotMinLat*1000 << " ms" << std::endl;
+
+		std::cout<< "Max PDR: " << timeSlotMaxPDR*100 << " %"<< std::endl;
+		std::cout<< "Avg PDR: " << timeSlotAvgPDR*100 << " %" << std::endl;
+		std::cout<< "Min PDR: " << timeSlotMinPDR*100 << " %" << std::endl;
+
+		std::cout<< "Max Distance: " << timeSlotMaxDist<< " m"<< std::endl;
+		std::cout<< "Avg Distance: " << timeSlotAvgDist << " m" << std::endl;
+		std::cout<< "Min Distance: " << timeSlotMinDist << " m" << std::endl;
+
+		std::cout<< "Max Hops: " << timeSlotMaxHop << std::endl;
+		std::cout<< "Avg Hops: " << timeSlotAvgHop << std::endl;
+		std::cout<< "Min Hops: " << timeSlotMinHop << std::endl;
+	}
+
+	if (csvFile.is_open()) {
+		csvFile << timeValue << "," << clusterValue << "," << GPCAValue << ","
+			<< timeSlotMaxTh << ", " << timeSlotAvgTh << ", " << timeSlotMinTh  << ","
+			<< timeSlotMaxLat << "," << timeSlotAvgLat << "," << timeSlotMinLat << ","
+			<< timeSlotMaxPDR << "," << timeSlotAvgPDR << "," << timeSlotMinPDR <<  ","
+			<< timeSlotMaxDist << "," << timeSlotAvgDist << "," << timeSlotMinDist <<  "," 
+			<< timeSlotMaxHop << "," << timeSlotAvgHop << "," << timeSlotMinHop<< "\n";
+	} else {
+		std::cerr << "Error opening CSV file for writing." << std::endl;
+	}
+	
+
+
+
+}
+
 
 void 
 HighwayExperiment::iterateClusters (const std::vector<std::vector<double>>& arrayI){
@@ -632,12 +700,12 @@ HighwayExperiment::iterateClusters (const std::vector<std::vector<double>>& arra
 
 			if(row[3] == C && row[5] == 0){iterationClusterF.push_back(row);} //If forward creates the forward clusters matrix 
 			if(row[3] == C && row[5] == 1){iterationClusterB.push_back(row);} //If backward creates the backward clusters matrix 
-		
-		
+
 		} 
 
 		//changes the order of the list, starting from the header to the las vehicle, since the direction is the oposite.
 		std::reverse(iterationClusterB.begin(), iterationClusterB.end());  
+
 
 	
 		runExperiment(iterationClusterF);
@@ -647,9 +715,17 @@ HighwayExperiment::iterateClusters (const std::vector<std::vector<double>>& arra
 		runExperiment(iterationClusterB);
 		getParameters();
 		
-		getAverages();
+		
 		
 	}
+	getAverages();
+	writeResults();
+
+	SingleExpThroughput = 0; //Computed as the smallest throughput of each two hops in the simulation
+	SingleExpLatency = 0; //Computed as the sum of the latency beween hops
+	SingleExpPDR = 0; // Packet Delivery Ratio (initially set to 1), calculated as the product of each two hops comunication 
+	SingleExpHops = 0 ; //The number of nodes in the simulation. 
+	SingleExpDist = 0; 
 
 
 }
@@ -660,7 +736,7 @@ HighwayExperiment::runExperiment (const std::vector<std::vector<double>>& arrayV
 	int nNodes = 0;
 	
 	// An integer variable 'direction' which may be unused in the current context.
-	[[maybe_unused]] int direction;
+	int direction;
 
 	// An integer variable that identifies what time iteration is running.
 	int time;
@@ -668,428 +744,368 @@ HighwayExperiment::runExperiment (const std::vector<std::vector<double>>& arrayV
 	// A boolean variable 'GPCA' indicating if the courrent simulation is GPCA or not .
 	bool GPCA;
 
-	// A floating-point variable 'pastTime' storing the I-1 time value.
-	float pastTime;
-
-	// An integer variable 'pastTotalClusters' storing the I-1 number of clusters.
-	int pastTotalClusters;
-
-	// A boolean variable 'pastGPCA' indicating a condition in a previous state of the GPCA variables.
-	bool pastGPCA;
-
-	for([[maybe_unused]]const auto& row : arrayVehicles){
-		
-		//Unpacks the data values each experiment. 
-		nNodes= nNodes + 1;
-		cluster = row[3];
+	for(const auto& row : arrayVehicles){
+		time = row[1]; 
 		direction = row[5];
+		cluster = row[3];
 		GPCA = row[2];
+		nNodes= nNodes + 1;
+	}
 
-		if(time != row[1]){
 
-			float courrentTime = row [1];
 
-			//To don't calculate any value until the experiment has run at least one time.  
-			if (row[1] != firstTime){
-				
-				//Write here the results in csv
-				//Uncoment this to se the results that are being printed in the simulation. 
-				/*
-				std::cout<< "\n=========== result =========== "  << std::endl;
-				std::cout<< "Time: " << pastTime  << " s" << std::endl; 
-				std::cout<< "Total clusters: " << pastTotalClusters << std::endl; 
-				std::cout<< "GPCA: " << pastGPCA  << std::endl; 
-				
-				std::cout<< "Max throughput: " << timeSlotMaxTh << " Mbps" << std::endl;
-				std::cout<< "Avg throughput: " << timeSlotAvgTh << " Mbps" <<std::endl;
-				std::cout<< "Min throughput: " << timeSlotMinTh << " Mbps" << std::endl;
-
-				std::cout<< "Max latency: " << timeSlotMaxLat*1000 <<  " ms" << std::endl;
-				std::cout<< "Avg latency: " << timeSlotAvgLat*1000 << " ms" << std::endl;
-				std::cout<< "Min latency: " << timeSlotMinLat*1000 << " ms" << std::endl;
-			
-				std::cout<< "Max PDR: " << timeSlotMaxPDR*100 << " %"<< std::endl;
-				std::cout<< "Avg PDR: " << timeSlotAvgPDR*100 << " %" << std::endl;
-				std::cout<< "Min PDR: " << timeSlotMinPDR*100 << " %" << std::endl;
-
-				std::cout<< "Max Distance: " << timeSlotMaxDist<< " m"<< std::endl;
-				std::cout<< "Avg Distance: " << timeSlotAvgDist << " m" << std::endl;
-				std::cout<< "Min Distance: " << timeSlotMinDist << " m" << std::endl;
-
-				std::cout<< "Max Hops: " << timeSlotMaxHop << std::endl;
-				std::cout<< "Avg Hops: " << timeSlotAvgHop << std::endl;
-				std::cout<< "Min Hops: " << timeSlotMinHop << std::endl;
-				*/
-
-				//Writing in the cvs file
-				if (csvFile.is_open()) {
-					
-					 csvFile << pastTime << "," << pastTotalClusters << "," << pastGPCA << ","
-               				 << timeSlotMaxTh << ", " << timeSlotAvgTh << ", " << timeSlotMinTh  << ","
-               				 << timeSlotMaxLat << "," << timeSlotAvgLat << "," << timeSlotMinLat << ","
-                			 << timeSlotMaxPDR << "," << timeSlotAvgPDR << "," << timeSlotMinPDR <<  ","
-							 << timeSlotMaxDist << "," << timeSlotAvgDist << "," << timeSlotMinDist <<  "," 
-							 << timeSlotMaxHop << "," << timeSlotAvgHop << "," << timeSlotMinHop<< "\n";
-				} else {
-					std::cerr << "Error opening CSV file for writing." << std::endl;
-				}
-
-			}
-
-			pastTime = courrentTime;
-			pastTotalClusters = totalClusters; 
-			pastGPCA = GPCA;
-
-			}
-
-		time = row[1]; //This has to go after the print,  because is the time update
-		}
-	
-	
-	//Skips when there is just one node.
 	if (nNodes > 1){  
-		totalHops = nNodes;
+		SingleExpHops = nNodes;
 
 		//Uncoment this to se the parameters of each experiments
-		/*
-		std::cout<< "\n------------------------------ Data  ----------------------------------- \n";
-		std::cout << "I \t T  \tGPCA \t C \t Node \t D  \t ID \t  x  \t y \t v" << std::endl;
 		
-		for (const auto& row : arrayVehicles){  
-				for (const auto& value : row){std::cout << value  << "\t";}
-				std::cout << std::endl; 
-			}
-		std::cout<< "----------------------------------------------------------------------------- \n ";
+		if(printConfigurationTimeSlot){
+			std::cout<< "\n------------------------------ Data  ----------------------------------- \n";
+			std::cout << "I \t T  \tGPCA \t C \t Node \t D  \t ID \t  x  \t y \t v" << std::endl;
+			for (const auto& row : arrayVehicles){  
+					for (const auto& value : row){std::cout << value  << "\t";}
+					std::cout << std::endl; 
+				}
+			std::cout<< "----------------------------------------------------------------------------- \n ";
+			std::cout<< "Time: " << time << std::endl;
+			std::cout<< " Number of nodes: " << nNodes << std::endl;
+			std::cout<< " Number of cluster: " << cluster << std::endl;
+			std::cout<< " Direction: " << direction << std::endl;
+			std::cout<< " GPCA: " << GPCA << std::endl;
+		}
+	
+		
+		timeValue  = time; 
+		clusterValue = cluster; 
+	    GPCAValue = GPCA;
+		int sender = 0; 
+		int receiver = nNodes - 1; 
 
-		std::cout<< "Time: " << time << std::endl;
-		std::cout<< " Number of nodes: " << nNodes << std::endl;
-		std::cout<< " Number of cluster: " << cluster << std::endl;
-		std::cout<< " Direction: " << direction << std::endl;
-		std::cout<< " GPCA: " << GPCA << std::endl;
+
+		//double array with the ID of the vehicles.
+		std::vector<double> IDarray; 
+		
+		//gets an array with all the ID's of the experiment 
+		for (const auto& row : arrayVehicles) {IDarray.push_back(row[6]);} 
+
+		//Creates the set of IP addresses in the experiment  
+		std::vector<std::string> IPaddresses = createIP(IDarray); 
+
+		/*
+		if(sender == 0){
+		std::cout<< " Network IP list:  ";
+		for (const std::string& value : IPaddresses){std::cout << "  " << value;}}
+		std::cout<< "\n ------New hop to hop------ ";
+		std::cout<< " Sender: " << sender << " Receiver: " << receiver << std::endl; 
+		std::cout<<"\n";
+		Config::SetDefault("ns3::WifiRemoteStationManager::NonUnicastMode", StringValue(phyMode));
 		*/
 
-		totalLatency = 0;
-		totalDist = 0;
-		totalPDR = 1;
+		
+	    // Define the number of connections based on the number of nodes minus one.
+		int CONECTIONS(nNodes - 1);
 
-		for(int sender = 0; sender < nNodes - 1 ; sender++){
+		// Create a container for all nodes.
+		NodeContainer nodes;
 
-			//integer value that saves the receiver in the simulation. 
-			int receiver = sender + 1;
+		// Create an array of NodeContainer instances for connections.
+		NodeContainer c[CONECTIONS];
 
-			//double array with the ID of the vehicles.
-			std::vector<double> IDarray; 
-			
-			//gets an array with all the ID's of the experiment 
-			for (const auto& row : arrayVehicles) {IDarray.push_back(row[6]);} 
+		// Create 'nNodes' nodes.
+		nodes.Create(nNodes);
 
-			//Creates the set of IP addresses in the experiment  
-			std::vector<std::string> IPaddresses = createIP(IDarray); 
+		// Create containers for network devices for each connection.
+		NetDeviceContainer devices[CONECTIONS];
 
-			/*
-			if(sender == 0){
-			std::cout<< " Network IP list:  ";
-			for (const std::string& value : IPaddresses){std::cout << "  " << value;}}
-			std::cout<< "\n ------New hop to hop------ ";
-			std::cout<< " Sender: " << sender << " Receiver: " << receiver << std::endl; 
-			std::cout<<"\n";
-			Config::SetDefault("ns3::WifiRemoteStationManager::NonUnicastMode", StringValue(phyMode));
-			*/
+		// Create helpers for configuring the wireless PHY, MAC, and channel for each connection.
+		YansWifiPhyHelper wifiPhy[CONECTIONS];
+		WifiHelper wifi[CONECTIONS];
+		YansWifiChannelHelper wifiChannel[CONECTIONS];
+		WifiMacHelper wifiMac;
 
-			
-		// Define the number of connections based on the number of nodes minus one.
-			int CONECTIONS(nNodes - 1);
+		// Set the Wi-Fi MAC type to AdhocWifiMac.
+		wifiMac.SetType("ns3::AdhocWifiMac");
 
-			// Create a container for all nodes.
-			NodeContainer nodes;
+		// Loop through each connection.
+		for (int link = 0; link < CONECTIONS; link++) {
+			// Add nodes to the NodeContainer for this connection.
+			c[link].Add(nodes.Get(link));
+			c[link].Add(nodes.Get(link + 1));
 
-			// Create an array of NodeContainer instances for connections.
-			NodeContainer c[CONECTIONS];
+			// Configure the wireless channel properties for this connection.
+			wifiChannel[link].SetPropagationDelay("ns3::ConstantSpeedPropagationDelayModel");
+			wifiChannel[link].AddPropagationLoss("ns3::LogDistancePropagationLossModel", "Exponent", DoubleValue(3.0));
 
-			// Create 'nNodes' nodes.
-			nodes.Create(nNodes);
+			// Set the Wi-Fi standard for this connection.
+			wifi[link].SetStandard(WIFI_STANDARD_80211ac);
 
-			// Create containers for network devices for each connection.
-			NetDeviceContainer devices[CONECTIONS];
+			// Set the remote station manager and data/control modes.
+			wifi[link].SetRemoteStationManager("ns3::ConstantRateWifiManager", "DataMode", StringValue(phyMode), "ControlMode", StringValue(phyMode));
 
-			// Create helpers for configuring the wireless PHY, MAC, and channel for each connection.
-			YansWifiPhyHelper wifiPhy[CONECTIONS];
-			WifiHelper wifi[CONECTIONS];
-			YansWifiChannelHelper wifiChannel[CONECTIONS];
-			WifiMacHelper wifiMac;
+			// Configure the physical layer for this connection.
+			wifiPhy[link].SetChannel(wifiChannel[link].Create());
+			wifiPhy[link].SetPcapDataLinkType(WifiPhyHelper::DLT_IEEE802_11_RADIO);
+			wifiPhy[link].Set("TxPowerStart", DoubleValue(txPowerDbm));
+			wifiPhy[link].Set("TxPowerEnd", DoubleValue(txPowerDbm));
 
-			// Set the Wi-Fi MAC type to AdhocWifiMac.
-			wifiMac.SetType("ns3::AdhocWifiMac");
+			// Install the Wi-Fi devices for this connection.
+			devices[link] = wifi[link].Install(wifiPhy[link], wifiMac, c[link]);
+		}
 
-			// Loop through each connection.
-			for (int link = 0; link < CONECTIONS; link++) {
-				// Add nodes to the NodeContainer for this connection.
-				c[link].Add(nodes.Get(link));
-				c[link].Add(nodes.Get(link + 1));
+		// Set the channel width for all Wi-Fi devices in the simulation.
+		Config::Set("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/ChannelWidth", UintegerValue(channelWidth));
 
-				// Configure the wireless channel properties for this connection.
-				wifiChannel[link].SetPropagationDelay("ns3::ConstantSpeedPropagationDelayModel");
-				wifiChannel[link].AddPropagationLoss("ns3::LogDistancePropagationLossModel", "Exponent", DoubleValue(3.0));
+		// Create an AODV routing helper.
+		AodvHelper aodv;
+		OlsrHelper olsr; 
+		Ipv4StaticRoutingHelper staticRouting;
+		Ipv4ListRoutingHelper list;
 
-				// Set the Wi-Fi standard for this connection.
-				wifi[link].SetStandard(WIFI_STANDARD_80211ac);
-
-				// Set the remote station manager and data/control modes.
-				wifi[link].SetRemoteStationManager("ns3::ConstantRateWifiManager", "DataMode", StringValue(phyMode), "ControlMode", StringValue(phyMode));
-
-				// Configure the physical layer for this connection.
-				wifiPhy[link].SetChannel(wifiChannel[link].Create());
-				wifiPhy[link].SetPcapDataLinkType(WifiPhyHelper::DLT_IEEE802_11_RADIO);
-				wifiPhy[link].Set("TxPowerStart", DoubleValue(txPowerDbm));
-				wifiPhy[link].Set("TxPowerEnd", DoubleValue(txPowerDbm));
-
-				// Install the Wi-Fi devices for this connection.
-				devices[link] = wifi[link].Install(wifiPhy[link], wifiMac, c[link]);
-			}
-
-			// Set the channel width for all Wi-Fi devices in the simulation.
-			Config::Set("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/ChannelWidth", UintegerValue(channelWidth));
-
-			// Create an AODV routing helper.
-			AodvHelper aodv;
-
-			// Create Ipv4StaticRoutingHelper and Ipv4ListRoutingHelper for configuring routing.
-			Ipv4StaticRoutingHelper staticRouting;
-			Ipv4ListRoutingHelper list;
-
-			// Create an InternetStackHelper for setting up the protocol stack.
-			InternetStackHelper stack;
-
-			// Add AODV and static routing to the routing helper list.
-			list.Add(aodv, 100); // AODV is given a higher priority (100).
-			list.Add(staticRouting, 10); // Static routing is given a lower priority (10).
-
-			// Set the routing helper list in the InternetStackHelper.
-			stack.SetRoutingHelper(list);
-
-			// Install the protocol stack on all nodes.
-			stack.InstallAll();
-
-			// Create an array of Ipv4AddressHelper for addressing connections.
-			Ipv4AddressHelper address[CONECTIONS];
-
-			// Create an array of Ipv4InterfaceContainer for managing network interfaces.
-			Ipv4InterfaceContainer interface[CONECTIONS];
-
-			// Initialize an Ipv4Address variable.
-			ns3::Ipv4Address ipv4Address;
-
-			// Loop through each connection.
-			for (int link = 0; link < CONECTIONS; link++) {
-				// Convert an IP address from a string and assign it to ipv4Address.
-				ipv4Address = IPaddresses[link].c_str();
-				
-				// Set the base IP address and subnet mask for this connection.
-				address[link].SetBase(ipv4Address, "255.255.255.0"); // Addressing two nodes in the same network.
-				
-				// Assign the address to the devices for this connection.
-				interface[link] = address[link].Assign(devices[link]);
-			}
-
-			// Create a MobilityHelper for managing node mobility.
-			MobilityHelper mobility;
-
-			// Set the mobility model to ConstantVelocityMobilityModel.
-			mobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
-
-			// Create a ListPositionAllocator for node positions.
-			Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator>();
-
-
-			// Loop through each row in the arrayVehicles.
-			for (const auto& row : arrayVehicles) {
-				// Extract X and Y positions from the row.
-				double posX = row[7];
-				double posY = row[8];
-				
-				// Add the position to the position allocator.
-				positionAlloc->Add(Vector(posX, posY, 0.0));
-			}
-
-			// Set the position allocator for node mobility.
-			mobility.SetPositionAllocator(positionAlloc);
-
-			// Install the mobility model on nodes.
-			mobility.Install(nodes);
-
-			// Initialize a node index.
-			int node = 0;
-
-			// Loop through each row in the arrayVehicles again.
-			for (const auto& row : arrayVehicles) {
-				// Extract velocity from the row.
-				double vel = row[9];
-				
-				// Get the ConstantVelocityMobilityModel for the current node.
-				Ptr<ConstantVelocityMobilityModel> mob = nodes.Get(node)->GetObject<ConstantVelocityMobilityModel>();
-				
-				// Set the velocity for the mobility model.
-				mob->SetVelocity(Vector(vel, 0, 0));
-				
-				// Increment the node index.
-				node = node + 1;
-			}
-
-			// Get the MobilityModel for the sender and receiver nodes.
-			Ptr<MobilityModel> mobilityModelA = nodes.Get(sender)->GetObject<MobilityModel>();
-			Ptr<MobilityModel> mobilityModelB = nodes.Get(receiver)->GetObject<MobilityModel>();
-
-			// Calculate the constant distance between the sender and receiver.
-			float x1 = mobilityModelA->GetPosition().x - mobilityModelB->GetPosition().x;
-			float y1 = mobilityModelA->GetPosition().y - mobilityModelB->GetPosition().y;
-			float d = sqrt(pow(x1, 2) + pow(y1, 2));
-
-			// Configure the OnOffHelper for sender.
-			OnOffHelper onOffHelper("ns3::UdpSocketFactory", Address());
-			onOffHelper.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=1]"));
-			onOffHelper.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0]"));
-			onOffHelper.SetAttribute("DataRate", StringValue(dataRate));
-			onOffHelper.SetAttribute("PacketSize", UintegerValue(packetSize));
-			onOffHelper.SetAttribute("MaxBytes", UintegerValue(maxBytes));
-
-			// Set the remote address for sender.
-			AddressValue remoteAddress(InetSocketAddress(interface[receiver - 1].GetAddress(1), SERVER));
-			onOffHelper.SetAttribute("Remote", remoteAddress);
-
-			// Install the OnOff application on the sender node.
-			ApplicationContainer senderApp = onOffHelper.Install(nodes.Get(sender));
-
-			// Configure the start and stop times for senderApp.
-			senderApp.Start(Seconds(senderStart));
-			senderApp.Stop(Seconds(senderStop));
-
-			// Configure the PacketSinkHelper for receiver.
-			PacketSinkHelper sinkHelper("ns3::UdpSocketFactory", Address());
-			sinkHelper.SetAttribute("Local", AddressValue(InetSocketAddress(Ipv4Address::GetAny(), SERVER)));
-
-			// Install the PacketSink application on the receiver node.
-			ApplicationContainer receiverApp = sinkHelper.Install(nodes.Get(receiver));
-
-			// Configure the start and stop times for receiverApp.
-			receiverApp.Start(Seconds(receiverStart));
-			receiverApp.Stop(Seconds(receiverStop));
+		// Create an InternetStackHelper for setting up the protocol stack.
+		InternetStackHelper stack;
 
 		
-			// Create a pointer to a FlowMonitor instance.
-			Ptr<FlowMonitor> monitor;
+		// Add AODV and static routing to the routing helper list.
+		//list.Add(olsr, 100); // AODV is given a higher priority (100).
+		list.Add(staticRouting, 10); // Static routing is given a lower priority (10).
 
-			// Create a FlowMonitorHelper to set up flow monitoring.
-			FlowMonitorHelper flowMonitor;
+		// Set the routing helper list in the InternetStackHelper.
+		stack.SetRoutingHelper(list);
 
-			// Install flow monitoring on all nodes.
-			monitor = flowMonitor.InstallAll();
+		// Install the protocol stack on all nodes.
+		stack.InstallAll();
+		// Create Ipv4StaticRoutingHelper and Ipv4ListRoutingHelper for configuring routing.
+		
+		// Create an array of Ipv4AddressHelper for addressing connections.
+		Ipv4AddressHelper address[CONECTIONS];
 
-			// Stop the simulation at the specified simulation time.
-			Simulator::Stop(Seconds(simTime));
+		// Create an array of Ipv4InterfaceContainer for managing network interfaces.
+		Ipv4InterfaceContainer interface[CONECTIONS];
 
-			// Run the simulation until the specified stop time.
-			Simulator::Run();
+		// Initialize an Ipv4Address variable.
+		ns3::Ipv4Address ipv4Address;
 
-			// Serialize and save flow monitor data to an XML file for NetAnim use.
-			monitor->SerializeToXmlFile("MEASURMENTS.xml", true, true);
+		// Loop through each connection.
+		for (int link = 0; link < CONECTIONS; link++) {
+			// Convert an IP address from a string and assign it to ipv4Address.
+			ipv4Address = IPaddresses[link].c_str();
+			
+			// Set the base IP address and subnet mask for this connection.
+			address[link].SetBase(ipv4Address, "255.255.255.0"); // Addressing two nodes in the same network.
+			
+			// Assign the address to the devices for this connection.
+			interface[link] = address[link].Assign(devices[link]);
+		}
+		
+	
 
-			// Create a pointer to an Ipv4FlowClassifier to access Ipv4 flow information.
-			Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier>(flowMonitor.GetClassifier());
+		for (int node = 0; node < nNodes - 1; node++) {
+			//Ptr<Ipv4StaticRouting> staticRoutingNode = staticRouting.GetStaticRouting(nodes.Get(node)->GetObject<Ipv4>());
 
-			// Get statistics for the flows monitored by the FlowMonitor.
-			std::map<FlowId, FlowMonitor::FlowStats> stats = monitor->GetFlowStats();
+			//staticRoutingNode ->AddNetworkRouteTo(Ipv4Address(interface[receiver - 1].GetAddress(1)), Ipv4Mask("255.255.255.0"),  );
+		 	ns3::Ptr<ns3::Ipv4StaticRouting> staticRoute = staticRouting.GetStaticRouting(nodes.Get(node)->GetObject<ns3::Ipv4>());
+			 Ipv4Address gatewayAddress = interface[node].GetAddress(1);
+			if(node == 0){
+				staticRoute  ->AddNetworkRouteTo(Ipv4Address(interface[receiver - 1].GetAddress(1)), Ipv4Mask("255.255.255.0"),gatewayAddress,1);
+			}else{
 
-			// Create an iterator to traverse the flow statistics map.
-			std::map<FlowId, FlowMonitor::FlowStats>::const_iterator statsPointer;
+				staticRoute  ->AddNetworkRouteTo(Ipv4Address(interface[receiver - 1].GetAddress(1)), Ipv4Mask("255.255.255.0"),gatewayAddress,2);
+			}
+			
+		}
+
+		
+	
+		Ptr<OutputStreamWrapper> routingStream = Create<OutputStreamWrapper> ("RoutesStatic.routes", std::ios::out);
+		// aodv.PrintRoutingTableAllAt(Seconds(0.5), routingStream);
+		staticRouting.PrintRoutingTableAllAt(Seconds(0.5), routingStream);
+
+
+		// Create a MobilityHelper for managing node mobility.
+		MobilityHelper mobility;
+
+		// Set the mobility model to ConstantVelocityMobilityModel.
+		mobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
+
+		// Create a ListPositionAllocator for node positions.
+		Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator>();
+
+
+		// Loop through each row in the arrayVehicles.
+		for (const auto& row : arrayVehicles) {
+			// Extract X and Y positions from the row.
+			double posX = row[7];
+			double posY = row[8];
+			
+			// Add the position to the position allocator.
+			positionAlloc->Add(Vector(posX, posY, 0.0));
+		}
+
+		// Set the position allocator for node mobility.
+		mobility.SetPositionAllocator(positionAlloc);
+
+		// Install the mobility model on nodes.
+		mobility.Install(nodes);
+
+		// Initialize a node index.
+		int node = 0;
+
+		// Loop through each row in the arrayVehicles again.
+		for (const auto& row : arrayVehicles) {
+			// Extract velocity from the row.
+			double vel = row[9];
+			
+			// Get the ConstantVelocityMobilityModel for the current node.
+			Ptr<ConstantVelocityMobilityModel> mob = nodes.Get(node)->GetObject<ConstantVelocityMobilityModel>();
+			
+			// Set the velocity for the mobility model.
+			mob->SetVelocity(Vector(vel, 0, 0));
+			
+			// Increment the node index.
+			node = node + 1;
+		}
+
+		// Get the MobilityModel for the sender and receiver nodes.
+		Ptr<MobilityModel> mobilityModelA = nodes.Get(sender)->GetObject<MobilityModel>();
+		Ptr<MobilityModel> mobilityModelB = nodes.Get(receiver)->GetObject<MobilityModel>();
+
+		// Calculate the constant distance between the sender and receiver.
+		float x1 = mobilityModelA->GetPosition().x - mobilityModelB->GetPosition().x;
+		float y1 = mobilityModelA->GetPosition().y - mobilityModelB->GetPosition().y;
+		float d = sqrt(pow(x1, 2) + pow(y1, 2));
+
+		// Configure the OnOffHelper for sender.
+		OnOffHelper onOffHelper("ns3::UdpSocketFactory", Address());
+		onOffHelper.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=1]"));
+		onOffHelper.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0]"));
+		onOffHelper.SetAttribute("DataRate", StringValue(dataRate));
+		onOffHelper.SetAttribute("PacketSize", UintegerValue(packetSize));
+		onOffHelper.SetAttribute("MaxBytes", UintegerValue(maxBytes));
+
+		// Set the remote address for sender.
+		AddressValue remoteAddress(InetSocketAddress(interface[receiver - 1].GetAddress(1), SERVER));
+		onOffHelper.SetAttribute("Remote", remoteAddress);
+
+		// Install the OnOff application on the sender node.
+		ApplicationContainer senderApp = onOffHelper.Install(nodes.Get(sender));
+
+		// Configure the start and stop times for senderApp.
+		senderApp.Start(Seconds(senderStart));
+		senderApp.Stop(Seconds(senderStop));
+
+		// Configure the PacketSinkHelper for receiver.
+		PacketSinkHelper sinkHelper("ns3::UdpSocketFactory", Address());
+		sinkHelper.SetAttribute("Local", AddressValue(InetSocketAddress(Ipv4Address::GetAny(), SERVER)));
+
+		// Install the PacketSink application on the receiver node.
+		ApplicationContainer receiverApp = sinkHelper.Install(nodes.Get(receiver));
+
+		// Configure the start and stop times for receiverApp.
+		receiverApp.Start(Seconds(receiverStart));
+		receiverApp.Stop(Seconds(receiverStop));
+
+	
+		// Create a pointer to a FlowMonitor instance.
+		Ptr<FlowMonitor> monitor;
+
+		// Create a FlowMonitorHelper to set up flow monitoring.
+		FlowMonitorHelper flowMonitor;
+
+		// Install flow monitoring on all nodes.
+		monitor = flowMonitor.InstallAll();
+
+		// Stop the simulation at the specified simulation time.
+		Simulator::Stop(Seconds(simTime));
+
+		// Run the simulation until the specified stop time.
+		Simulator::Run();
+
+		// Serialize and save flow monitor data to an XML file for NetAnim use.
+		monitor->SerializeToXmlFile("MEASURMENTS.xml", true, true);
+
+		// Create a pointer to an Ipv4FlowClassifier to access Ipv4 flow information.
+		Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier>(flowMonitor.GetClassifier());
+
+		// Get statistics for the flows monitored by the FlowMonitor.
+		std::map<FlowId, FlowMonitor::FlowStats> stats = monitor->GetFlowStats();
+
+		// Create an iterator to traverse the flow statistics map.
+		std::map<FlowId, FlowMonitor::FlowStats>::const_iterator statsPointer;
 
 
 
-			// Iterate through the flow statistics map.
-			for (statsPointer = stats.begin(); statsPointer != stats.end(); ++statsPointer) {
-				// Find the corresponding flow tuple using the Ipv4FlowClassifier.
-				Ipv4FlowClassifier::FiveTuple monitor = classifier->FindFlow(statsPointer->first);
+		// Iterate through the flow statistics map.
+		for (statsPointer = stats.begin(); statsPointer != stats.end(); ++statsPointer) {
+			// Find the corresponding flow tuple using the Ipv4FlowClassifier.
+			Ipv4FlowClassifier::FiveTuple monitor = classifier->FindFlow(statsPointer->first);
 
-				// Check if the flow matches the sender and receiver addresses.
-				if ((monitor.sourceAddress == interface[sender].GetAddress(0) && monitor.destinationAddress == interface[receiver - 1].GetAddress(1))) {
-					// Calculate Packet Delivery Ratio (PDR) as the ratio of received packets to transmitted packets.
-					float PDR = (static_cast<float>(statsPointer->second.rxPackets)) / (static_cast<float>(statsPointer->second.txPackets));
+			// Check if the flow matches the sender and receiver addresses.
+			if ((monitor.sourceAddress == interface[sender].GetAddress(0) && monitor.destinationAddress == interface[receiver - 1].GetAddress(1))) {
+				// Calculate Packet Delivery Ratio (PDR) as the ratio of received packets to transmitted packets.
+				float PDR = (static_cast<float>(statsPointer->second.rxPackets)) / (static_cast<float>(statsPointer->second.txPackets));
 
-					// Calculate the transmission time as the difference between the time of the last received packet and the time of the first transmitted packet.
-					float transmitionTime = statsPointer->second.timeLastRxPacket.GetSeconds() - statsPointer->second.timeFirstTxPacket.GetSeconds();
+				// Calculate the transmission time as the difference between the time of the last received packet and the time of the first transmitted packet.
+				float transmitionTime = statsPointer->second.timeLastRxPacket.GetSeconds() - statsPointer->second.timeFirstTxPacket.GetSeconds();
 
-					// Calculate the total number of received packets.
-					float totRecPackets = statsPointer->second.rxPackets;
+				// Calculate the total number of received packets.
+				float totRecPackets = statsPointer->second.rxPackets;
 
-					// Calculate throughput in Mbps.
-					float throughput = (8 * totRecPackets * packetSize) / (transmitionTime * 1000000);
+				// Calculate throughput in Mbps.
+				float throughput = (8 * totRecPackets * packetSize) / (transmitionTime * 1000000);
 
-					// Calculate latency as the sum of delays divided by the number of received packets.
-					ns3::Time delaySum = statsPointer->second.delaySum;
-					float delaySumFloat = static_cast<float>(delaySum.GetSeconds());
-					float latency = delaySumFloat / (statsPointer->second.rxPackets);
+				// Calculate latency as the sum of delays divided by the number of received packets.
+				ns3::Time delaySum = statsPointer->second.delaySum;
+				float delaySumFloat = static_cast<float>(delaySum.GetSeconds());
+				float latency = delaySumFloat / (statsPointer->second.rxPackets);
 
-					// Add a constant delay to the latency.
-					latency = latency + 0.002;
+				// Add a constant delay to the latency.
+				latency = latency + 0.002;
 
-					// Update total statistics.
-					totalPDR = (PDR) * totalPDR;
-					totalLatency = totalLatency + latency;
-					totalDist = d + totalDist;
-
-					// Update total throughput if the sender is the first node.
-					if (sender == 0) {
-						totalThroughput = throughput;
-					} else {
-						if (totalThroughput > throughput) {
-							totalThroughput = throughput;
-						}
-					}
-
-					// Uncomment this block to print detailed communication results for two hops simulation.
-					/*
+				// Uncomment this block to print detailed communication results for two hops simulation.
+				if(printParametersTimeSlot){
 					std::cout << "\n Flow " << " (" << monitor.sourceAddress << " -> " << monitor.destinationAddress << ")\n";
 					std::cout << "\n --- Simulation results ----- \n";
 					std::cout << "Throughput: " << throughput << " Mbps\n";
-					std::cout << "Latency: " << latency << " \n"; // Divided by the number of packages because it's the mean value.
-					std::cout << "PDR: " << PDR << " \n";
+					std::cout << "Latency: " << latency*1000 <<  " ms\n"; // Divided by the number of packages because it's the mean value.
+					std::cout << "PDR: " << PDR*100 << " %\n";
 					std::cout << "Tx Packages:   " << statsPointer->second.txPackets << "\n";
 					std::cout << "Rx Packages:   " << statsPointer->second.rxPackets << "\n";
 					std::cout << "Lost packages:   " << statsPointer->second.lostPackets << "\n";
 					std::cout << "distance:   " << d << "\n";
-					std::cout << "----------------------------------------------";
-					*/
 				}
+				
+
+				  
+				SingleExpThroughput = throughput; //Computed as the smallest throughput of each two hops in the simulation
+				SingleExpLatency = latency; //Computed as the sum of the latency beween hops
+				SingleExpPDR = PDR; // Packet Delivery Ratio (initially set to 1), calculated as the product of each two hops comunication 
+				SingleExpHops = nNodes -1 ; //The number of nodes in the simulation. 
+				SingleExpDist = d; 
+
+
+				
 			}
-
-			
-
-			Simulator::Destroy();
-
-
 		}
-		
-		
-
 
 		
+
+		Simulator::Destroy();
+
+
+	
+	
+	
+
+
+	
 
 	} 
 
-	//Gets the average distance between all the hops
-	totalDist = totalDist/(totalHops - 1); 
 
-
-	//Uncoment this to se the result of each time iteration
-	/*
-	std::cout<< "\n === New experiment ===" << std::endl;
-	std::cout << "\n Total Throughput: " << totalThroughput << " Mbps";
-	std::cout << "\n Total latency: " << 1000*totalLatency << " ms";
-	std::cout << "\n Total PDR: " << totalPDR*100 << " %";
-	std::cout << "\n Distance: " << totalDist << " m";
-	std::cout << "\n Hops: " << totalHops;
-	*/
 	
 }
+
+
 
 std::vector<std::string> HighwayExperiment::createIP(const std::vector<double>& arrayID) {
     std::vector<std::string> IPvector; // Vector to store generated IP addresses.

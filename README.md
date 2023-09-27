@@ -40,7 +40,7 @@ This generates the `ExperimentResultPlots/*/highway*_PQGR_Result_**_plot.png` fi
 - In addition a final plot is generated with all these graphs together `ExperimentResultPlots/**/highway*_PQGR_Result_AllFigures.png`.
 
 # General specifications of the simulation
-
+- All the parameters can be changes in the `HighwayExperiment.h` for configurtion `HighwayExperiment::Configure()` 
 ## Simulation Time
 Simulation time = 1s.
 

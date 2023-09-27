@@ -28,8 +28,6 @@ These are located in the `InputFiles` file and are described as `highway*_PQGR.m
 
 - There is an special kind of experiment called DGGR, the files are found in `InputFiles/DGGR/highway*_DGGR.mat` this file is processed in `ExperimentmToCSVDGGR.m` you only have to copy paste the code in matlab and charge the file after running the program, it would ask for the file, this generates the files found in `ExerimentFiles` which are `ExperimentFiles/**/highway*_**.csv` files, containing the data from the .mat file but unpacked so that C++ can read them in a more orderly.
 
-
-
 - These `MatlabProcessingResult/highway*_PQGR.csv` files are the input for the main C++ simulation, to run this file you must have installed the simulation software `ns3.33` and in the `ns-allinone-3.33/ns3-. 33` folder paste the `.csv` file, save the `ExperimentMain.cc` and `HighwayExperiment.h` program in `ns-allinone-3.33/ns3-.33/scratch` and to modify the input file you must specify it in the main function of `ExperimentMain.cc`.
   
 - This experiment takes approximately 4 hours to run and generates the files `ExperimentResultFiles/highway*_PQGR_Result.csv`. 
@@ -49,8 +47,9 @@ Simulation time = 1s.
 ## Communication Specifications
 - **Application Protocol:** onoff
 - **Sending Rate:** 90Mbps
-- **Max Packages:** 20,000 packages
+- **Max Packages:** 10,000 packages
 - **Packet Size:** 500 bytes
+- There is an special parameter called disconDistance that gives a lower bound for the cases the cars are to far, this case is 90mts. 
 
 ### Channel
 - **Tx Power:** 35 dBm
@@ -126,6 +125,7 @@ In that case  the newtor io would be 10.3.31.0 and the sender would be IP(10.3.3
 
 ## Data Formatting for Simulation
 - `highway*_PQGR.mat` -> `ExperimentData.m` -> `highway*_PQGR.csv`
+- For the comparing is the same
 - `*` = Dense, Sparse, Usparse, Vsparse
 
 | Iteration (I) | Time (Seconds) | GPCA | Cluster (C) | Node Position | Direction (D) | ID  | X    | Y    | V     |

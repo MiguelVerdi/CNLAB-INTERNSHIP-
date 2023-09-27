@@ -210,7 +210,7 @@ private:
 	bool printConfigurationTimeSlot;
     // Count of received packets
     uint32_t g_packetCount = 0;
-
+	float disconected = false; 
     // Server application port
     int SERVER;
 
@@ -245,8 +245,10 @@ private:
 	float SingleExpDist; //Computed as the distance between two nodes.  
 	float SingleExpHops; //The number of nodes in the simulation. 
 	float timeValue,GPCAValue,clusterValue;
+	float disconDistance; //Measures when there is an extreme distance 
     // This times are for the data reading, are independent of the actual simulation time 
     float totalTime, firstTime;
+	float numberOfExperiments = 0;
 	
     // Time slot variables
     int totalClusters, cluster;
@@ -298,7 +300,7 @@ private:
 	 * 
 	 * @param input A matrix of input data representing a cluster.
 	 */
-	void runExperiment(const std::vector<std::vector<double>>& input); // Run an experiment
+	bool runExperiment(const std::vector<std::vector<double>>& input); // Run an experiment
 
 	/**
 	 * @brief Create IP addresses based on input data.
@@ -378,7 +380,7 @@ HighwayExperiment::Configure (int argc, char **argv, const std::string& fileName
 	channelWidth = 40; //In MHz.
 	maxPackages = 10000; //The upper limit of packages the onoff aplication will send.  (20000)
 	maxBytes = packetSize*maxPackages;
-
+	disconDistance = 90;
 	//Time settings
 	// simTime = 40.0; //In sec. Time total of simulation
 	// senderStart = 30.1;//In sec. Time of start sending, should be after the simulation starts.
@@ -397,6 +399,7 @@ HighwayExperiment::Configure (int argc, char **argv, const std::string& fileName
 	printParametersTimeSlot = false; 
 	printSingleExperimentParameters = false;
 	printConfigurationTimeSlot = false;
+
 
 
 	
@@ -475,6 +478,7 @@ HighwayExperiment::runAll(){
 		float simProgress = std::round(100*I/totalI); //For printing how many simulations have been ran. 
 		if(simProgress < 100){ 
 			std::cout<< "\n - Simulation progress: " << simProgress << "% " << std::endl; 
+			std::cout<< "File: " << fileNameInput << std::endl;
 		}
 		else{
 			std::cout<< "\n - End of the simulation" << std::endl; 
@@ -492,7 +496,7 @@ HighwayExperiment::runAll(){
 void 
 HighwayExperiment::getParameters(){
 
-	if (cluster == 1) {
+	if (numberOfExperiments == 1) {
 		// When ther first cluster, initialize the value with the first value.
 		
 		// Sum of throughput
@@ -620,19 +624,19 @@ HighwayExperiment::getParameters(){
 void 
 HighwayExperiment::getAverages(){
 	// Calculate the average latency within the time .
-	timeSlotAvgLat = sumLat / (clusterValue * 2 - 1);
+	timeSlotAvgLat = sumLat / (numberOfExperiments );
 
 	// Calculate the average Packet Delivery Ratio (PDR) within the time .
-	timeSlotAvgPDR = sumPDR / (clusterValue* 2 - 1);
+	timeSlotAvgPDR = sumPDR / (numberOfExperiments );
 
 	// Calculate the average throughput within the time .
-	timeSlotAvgTh = sumTh / (clusterValue* 2 - 1);
+	timeSlotAvgTh = sumTh / (numberOfExperiments );
 
 	// Calculate the average distance within the time .
-	timeSlotAvgDist = sumDist / (clusterValue * 2 - 1);
+	timeSlotAvgDist = sumDist / (numberOfExperiments );
 
 	// Calculate the average number of hops within the time.
-	timeSlotAvgHop = sumHops / (clusterValue * 2 - 1);
+	timeSlotAvgHop = sumHops / (numberOfExperiments );
 
 }
 
@@ -689,8 +693,8 @@ HighwayExperiment::iterateClusters (const std::vector<std::vector<double>>& arra
 
 	double totalC; //Number of clusters
 	for (const auto& row:arrayI) {totalC = row[3];} //Get the total number of clusters in a time. 
-	
-	for (int C = 1; C <= totalC; C++){
+	int C;
+	for (C = 1; C <= totalC; C++){
 
 		std::vector<std::vector<double>> iterationClusterF; //forward cluster matrix of vehicles
 		std::vector<std::vector<double>> iterationClusterB; //Backward cluster matrix of vehicles
@@ -707,19 +711,29 @@ HighwayExperiment::iterateClusters (const std::vector<std::vector<double>>& arra
 		std::reverse(iterationClusterB.begin(), iterationClusterB.end());  
 
 
+		bool ranF = true; 
+		ranF = runExperiment(iterationClusterF);
+		if(ranF == true){getParameters(); }
 	
-		runExperiment(iterationClusterF);
-		getParameters();
+
+		bool ranB = true;
+		ranB = runExperiment(iterationClusterB);
+		if(ranB == true){getParameters();}
 		
-		
-		runExperiment(iterationClusterB);
-		getParameters();
-		
-		
+
+		if(C == totalC){
+			getAverages();
+			writeResults();
+			numberOfExperiments = 0; 
+		}
 		
 	}
-	getAverages();
-	writeResults();
+	
+	
+
+	
+	
+	
 
 	SingleExpThroughput = 0; //Computed as the smallest throughput of each two hops in the simulation
 	SingleExpLatency = 0; //Computed as the sum of the latency beween hops
@@ -730,7 +744,7 @@ HighwayExperiment::iterateClusters (const std::vector<std::vector<double>>& arra
 
 }
 
-void 
+bool 
 HighwayExperiment::runExperiment (const std::vector<std::vector<double>>& arrayVehicles){
 	//Integer value to save the number of nodes or total hops in a simulation
 	int nNodes = 0;
@@ -753,11 +767,9 @@ HighwayExperiment::runExperiment (const std::vector<std::vector<double>>& arrayV
 	}
 
 
-
 	if (nNodes > 1){  
 		SingleExpHops = nNodes;
 
-		//Uncoment this to se the parameters of each experiments
 		
 		if(printConfigurationTimeSlot){
 			std::cout<< "\n------------------------------ Data  ----------------------------------- \n";
@@ -778,6 +790,8 @@ HighwayExperiment::runExperiment (const std::vector<std::vector<double>>& arrayV
 		timeValue  = time; 
 		clusterValue = cluster; 
 	    GPCAValue = GPCA;
+
+
 		int sender = 0; 
 		int receiver = nNodes - 1; 
 
@@ -790,16 +804,6 @@ HighwayExperiment::runExperiment (const std::vector<std::vector<double>>& arrayV
 
 		//Creates the set of IP addresses in the experiment  
 		std::vector<std::string> IPaddresses = createIP(IDarray); 
-
-		/*
-		if(sender == 0){
-		std::cout<< " Network IP list:  ";
-		for (const std::string& value : IPaddresses){std::cout << "  " << value;}}
-		std::cout<< "\n ------New hop to hop------ ";
-		std::cout<< " Sender: " << sender << " Receiver: " << receiver << std::endl; 
-		std::cout<<"\n";
-		Config::SetDefault("ns3::WifiRemoteStationManager::NonUnicastMode", StringValue(phyMode));
-		*/
 
 		
 	    // Define the number of connections based on the number of nodes minus one.
@@ -856,17 +860,12 @@ HighwayExperiment::runExperiment (const std::vector<std::vector<double>>& arrayV
 		Config::Set("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/ChannelWidth", UintegerValue(channelWidth));
 
 		// Create an AODV routing helper.
-		AodvHelper aodv;
-		OlsrHelper olsr; 
 		Ipv4StaticRoutingHelper staticRouting;
 		Ipv4ListRoutingHelper list;
 
 		// Create an InternetStackHelper for setting up the protocol stack.
 		InternetStackHelper stack;
 
-		
-		// Add AODV and static routing to the routing helper list.
-		//list.Add(olsr, 100); // AODV is given a higher priority (100).
 		list.Add(staticRouting, 10); // Static routing is given a lower priority (10).
 
 		// Set the routing helper list in the InternetStackHelper.
@@ -900,11 +899,9 @@ HighwayExperiment::runExperiment (const std::vector<std::vector<double>>& arrayV
 	
 
 		for (int node = 0; node < nNodes - 1; node++) {
-			//Ptr<Ipv4StaticRouting> staticRoutingNode = staticRouting.GetStaticRouting(nodes.Get(node)->GetObject<Ipv4>());
-
-			//staticRoutingNode ->AddNetworkRouteTo(Ipv4Address(interface[receiver - 1].GetAddress(1)), Ipv4Mask("255.255.255.0"),  );
 		 	ns3::Ptr<ns3::Ipv4StaticRouting> staticRoute = staticRouting.GetStaticRouting(nodes.Get(node)->GetObject<ns3::Ipv4>());
-			 Ipv4Address gatewayAddress = interface[node].GetAddress(1);
+			Ipv4Address gatewayAddress = interface[node].GetAddress(1);
+			
 			if(node == 0){
 				staticRoute  ->AddNetworkRouteTo(Ipv4Address(interface[receiver - 1].GetAddress(1)), Ipv4Mask("255.255.255.0"),gatewayAddress,1);
 			}else{
@@ -916,10 +913,8 @@ HighwayExperiment::runExperiment (const std::vector<std::vector<double>>& arrayV
 
 		
 	
-		Ptr<OutputStreamWrapper> routingStream = Create<OutputStreamWrapper> ("RoutesStatic.routes", std::ios::out);
-		// aodv.PrintRoutingTableAllAt(Seconds(0.5), routingStream);
-		staticRouting.PrintRoutingTableAllAt(Seconds(0.5), routingStream);
-
+		// Ptr<OutputStreamWrapper> routingStream = Create<OutputStreamWrapper> ("RoutesStatic.routes", std::ios::out);
+		// staticRouting.PrintRoutingTableAllAt(Seconds(0.5), routingStream);
 
 		// Create a MobilityHelper for managing node mobility.
 		MobilityHelper mobility;
@@ -974,6 +969,21 @@ HighwayExperiment::runExperiment (const std::vector<std::vector<double>>& arrayV
 		float y1 = mobilityModelA->GetPosition().y - mobilityModelB->GetPosition().y;
 		float d = sqrt(pow(x1, 2) + pow(y1, 2));
 
+		for(int n = 0;  n < nNodes - 1; n++){
+
+			// Get the MobilityModel for the sender and receiver nodes.
+			Ptr<MobilityModel> nodeA = nodes.Get(n)->GetObject<MobilityModel>();
+			Ptr<MobilityModel> nodeB = nodes.Get(n + 1)->GetObject<MobilityModel>();
+
+			// Calculate the constant distance between the sender and receiver.
+			float x = nodeA->GetPosition().x - nodeB->GetPosition().x;
+			float y = nodeB->GetPosition().y - nodeA->GetPosition().y;
+			float distTwoHops = sqrt(pow(x, 2) + pow(y, 2));	 
+			if(distTwoHops > disconDistance){ 
+				disconected = true;
+			}
+		}
+
 		// Configure the OnOffHelper for sender.
 		OnOffHelper onOffHelper("ns3::UdpSocketFactory", Address());
 		onOffHelper.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=1]"));
@@ -1021,7 +1031,7 @@ HighwayExperiment::runExperiment (const std::vector<std::vector<double>>& arrayV
 		Simulator::Run();
 
 		// Serialize and save flow monitor data to an XML file for NetAnim use.
-		monitor->SerializeToXmlFile("MEASURMENTS.xml", true, true);
+		//monitor->SerializeToXmlFile("MEASURMENTS.xml", true, true);
 
 		// Create a pointer to an Ipv4FlowClassifier to access Ipv4 flow information.
 		Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier>(flowMonitor.GetClassifier());
@@ -1061,6 +1071,15 @@ HighwayExperiment::runExperiment (const std::vector<std::vector<double>>& arrayV
 				// Add a constant delay to the latency.
 				latency = latency + 0.002;
 
+
+				if(disconected == true){
+					//Default low boud values when the comunication is lost
+					throughput = 60;
+					PDR = .9;
+					latency = 0.002*(nNodes -1); 
+					disconected = false; 
+				}
+
 				// Uncomment this block to print detailed communication results for two hops simulation.
 				if(printParametersTimeSlot){
 					std::cout << "\n Flow " << " (" << monitor.sourceAddress << " -> " << monitor.destinationAddress << ")\n";
@@ -1075,12 +1094,14 @@ HighwayExperiment::runExperiment (const std::vector<std::vector<double>>& arrayV
 				}
 				
 
-				  
+				
 				SingleExpThroughput = throughput; //Computed as the smallest throughput of each two hops in the simulation
 				SingleExpLatency = latency; //Computed as the sum of the latency beween hops
 				SingleExpPDR = PDR; // Packet Delivery Ratio (initially set to 1), calculated as the product of each two hops comunication 
 				SingleExpHops = nNodes -1 ; //The number of nodes in the simulation. 
 				SingleExpDist = d; 
+				
+			
 
 
 				
@@ -1090,21 +1111,16 @@ HighwayExperiment::runExperiment (const std::vector<std::vector<double>>& arrayV
 		
 
 		Simulator::Destroy();
+		numberOfExperiments = numberOfExperiments + 1;
+		return true;
+	} else{
+		return false;
+	}
 
-
-	
-	
-	
-
-
-	
-
-	} 
 
 
 	
 }
-
 
 
 std::vector<std::string> HighwayExperiment::createIP(const std::vector<double>& arrayID) {

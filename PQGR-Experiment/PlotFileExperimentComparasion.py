@@ -2,9 +2,7 @@ import matplotlib.pyplot as plt
 import os
 
 # Specify the path to your text file
-file_path = 'ExperimentFiles\PQGR\highwaySparse_PQGR_Result.csv'
-subfolder = 'PQGR'
-
+file_path = 'ExperimentResultFiles\highwayVsparse_AODV_Result.csv'
 # Extract the base name of the CSV file without the extension
 base_name = os.path.splitext(os.path.basename(file_path))[0]
 
@@ -78,11 +76,7 @@ for i, subplot_data in enumerate([(maxHop, avgHop, minHop, 'Number of hops'),
 ax[-1].set_xlabel('Time (s)')
 plt.tight_layout()  # Optional: Improve subplot spacing
 
-save_directory = "ExperimentResultPlots"
-save_directory = os.path.join(save_directory, subfolder)
-
-#plt.savefig(plot_png_name, dpi=300, format="png", bbox_inches="tight")
-plt.savefig(os.path.join(save_directory, plot_png_name), dpi=300, format="png", bbox_inches="tight")
+plt.savefig(plot_png_name, dpi=300, format="png", bbox_inches="tight")
 plt.clf()  # Clear the current figure for the next iteration
 
 
@@ -103,11 +97,11 @@ for i, metric in enumerate([(maxHop, avgHop, minHop, 'Number of hops','Hops'),
     plt.ylabel(ylabel)
     plt.title(f'{title}')
     plt.grid()
-    save_directory = "ExperimentResultPlots"
-    save_directory = os.path.join(save_directory, subfolder)
+    save_directory = "PQGR-Experiment\ExperimentResultPlots"
 
-    plt.savefig(os.path.join(save_directory, f"{base_name}_{title}_plot.png"))
-    #plt.savefig(f"{base_name}_{title}_plot.png")  # Save each plot with a unique name
+# Create the full file path including the directory
+    file_path = os.path.join(save_directory, f"{base_name}_{title}_plot.png")
+    plt.savefig(file)  # Save each plot with a unique name
     plt.clf()  # Clear the current figure for the next iteration
 
 

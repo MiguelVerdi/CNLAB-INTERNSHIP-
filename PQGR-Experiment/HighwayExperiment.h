@@ -380,18 +380,10 @@ HighwayExperiment::Configure (int argc, char **argv, const std::string& fileName
 	channelWidth = 40; //In MHz.
 	maxPackages = 10000; //The upper limit of packages the onoff aplication will send.  (20000)
 	maxBytes = packetSize*maxPackages;
-	disconDistance = 90;
-	//Time settings
-	// simTime = 40.0; //In sec. Time total of simulation
-	// senderStart = 30.1;//In sec. Time of start sending, should be after the simulation starts.
-	// receiverStart = 30.0;//In sec. Time of the receiver starts looking for packages.
-	// senderStop = simTime - 1.0;//In sec. Time th sender stops sending packages. 
-	// receiverStop = simTime + 1.0 ;//In sec. Time the receiver stops receiving packages. Should be after the sender stops.  
+	disconDistance = 90; //Lower limit for too far vehicles.
 	simTime = 1.0; //sec
-	
 	senderStart = 0.0;//sec
 	receiverStart = 0.0;//sec
-
 	senderStop = simTime;//sec
 	receiverStop = simTime;//sec
 

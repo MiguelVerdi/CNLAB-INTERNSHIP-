@@ -2,16 +2,16 @@ import matplotlib.pyplot as plt
 import os
 
 # Specify the path to your text file
-file_path4 = r'ExperimentFiles\DGGR\highwayDense_DGGR_Result.csv'
-file_path2 = r'ExperimentFiles\NPCA\highwayDense_NPCA_Result.csv'
-file_path3 = r'ExperimentFiles\AODV\highwayDense_AODV_Result.csv'
-file_path1 = r'ExperimentFiles\PQGR\highwayDense_PQGR_Result.csv'
+file_path4 = r'ExperimentFiles\DGGR\highwayUsparse_DGGR_Result.csv'
+file_path2 = r'ExperimentFiles\NPCA\highwayUsparse_NPCA_Result.csv'
+file_path3 = r'ExperimentFiles\AODV\highwayUsparse_AODV_Result.csv'
+file_path1 = r'ExperimentFiles\PQGR\highwayUsparse_PQGR_Result.csv'
 
 
 subfolder = 'Comparison'
-plot_png_nameAvr = f'DenseAvrComparison.png'
-plot_png_nameMin = f'DenseMinComparison.png'
-plot_png_nameMax = f'DenseMaxComparison.png'
+plot_png_nameAvr = f'UsparseAvrComparison.png'
+plot_png_nameMin = f'UsparseMinComparison.png'
+plot_png_nameMax = f'UsparseMaxComparison.png'
 
 # Create the name for the plot PNG
 # Initialize empty lists to store data
